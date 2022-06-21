@@ -25,3 +25,5 @@ Imports:
     stringr,
     tibble,
     tidyr
+URL: https://github.com/tivorn/faturamento.sus
+BugReports: https://github.com/tivorn/faturamento.sus/issues

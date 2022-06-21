@@ -1,0 +1,27 @@
+Package: faturamento.sus
+Title: Preprocess SIA-PA DATASUS database
+Version: 0.0.0.9000
+Authors@R: 
+    person("Victor", "Fernandes", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Preprocess SIA-PA DATASUS and match with CNES and SIGTAP informations
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.0
+Imports: 
+    curl,
+    dplyr,
+    foreign,
+    here,
+    httr,
+    janitor,
+    lubridate,
+    microdatasus,
+    purrr,
+    read.dbc,
+    readr,
+    stringr,
+    tibble,
+    tidyr

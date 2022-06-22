@@ -8,6 +8,14 @@
 \description{
 Preprocess SIA-PA DATASUS and match with CNES and SIGTAP informations
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/tivorn/faturamento.sus}
+  \item Report bugs at \url{https://github.com/tivorn/faturamento.sus/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Victor Fernandes \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
 

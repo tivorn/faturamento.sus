@@ -153,4 +153,3 @@ get_procedure_details <- function() {
 procedure_details <- get_procedure_details()
 cbo <- get_detail("CBO")
 
-usethis::use_data(procedure_details, cbo)

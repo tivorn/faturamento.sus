@@ -50,12 +50,9 @@ cnes_df <- here("data-raw", "CNES", "ST") %>%
 
 cnes_aux <- here("data-raw", "CNES", "CADGER") %>%
   list.files(full.names = TRUE) %>%
-  str_subset("CE") %>%
   map_dfr(read.dbf, as.is=TRUE)
 
 cnes_df <- cnes_df %>%
   left_join(cnes_aux, by="CNES") %>%
   select(CNES, FANTASIA, COMPETEN) %>%
   as_tibble()
-
-usethis::use_data(cnes_df, overwrite=TRUE)

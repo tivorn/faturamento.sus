@@ -1,36 +1,24 @@
 #' Create SUS-SIA database
 #'
+#' @description
 #' [create_output_SIA] preprocess microdata files from SIA-PA information system (DataSUS)
 #' and match with CNES and SIGTAP information.
-
-get_counties_by_state <- function(state_abbr) {
-  base_url <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
-
-  state_id <- base_url %>%
-    httr::GET() %>%
-    httr::content() %>%
-    tibble() %>%
-    unnest_auto(col=".") %>%
-    filter(sigla == state_abbr) %>%
-    pull(id)
-
-  request_url <- str_glue("{base_url}/{state_id}/municipios")
-
-  response_content <- request_url %>%
-    httr::GET() %>%
-    httr::content() %>%
-    tibble() %>%
-    unnest_auto(col=".") %>%
-    unnest_wider(col="microrregiao", names_sep="_") %>%
-    unnest_wider(col="microrregiao_mesorregiao", names_sep="_") %>%
-    select(id, nome, microrregiao_nome, microrregiao_mesorregiao_nome) %>%
-    rename(nm_mun = nome, id_mun = id,
-           nm_micror = microrregiao_nome,
-           nm_mesor = microrregiao_mesorregiao_nome) %>%
-    mutate(id_mun = str_sub(id_mun, 1, 6))
-
-  return(response_content)
-}
+#'
+#' @param year_start Ano de início da realização do procedimento
+#' @param month_start Mês de início da realização do procedimento
+#' @param year_end Ano de término da realização do procedimento
+#' @param month_end Mês de término da realização do procedimento
+#' @param uf Sigla da Unidade Federativa
+#' @param CNES Código(s) do estabelecimento de saúde
+#'
+#' @examples
+#' \dontrun{create_output_SIA(year_start=2021,
+#'                   month_start=1,
+#'                   year_end=2021,
+#'                   month_end=3,
+#'                   uf="CE",
+#'                   CNES=c("2561492","2481286")
+#'                   )}
 
 
 #' @export
@@ -52,9 +40,9 @@ create_output_SIA <- function(year_start, month_start,
 
   procedure_start = str_glue("{year_start}-{month_start}")
 
-  load(here("data", "cnes_df.rda"))
+  data(sysdata, envir=environment())
 
-  print("Informações dos estabelecimentos de saúde obtidas com sucesso!")
+  print("Informações auxiliares carregadas com sucesso!")
 
   print("Realizando preprocessamento dos dados...")
 
@@ -103,13 +91,6 @@ create_output_SIA <- function(year_start, month_start,
 
   print("Preprocessamento dos dados concluido!")
 
-  print("Obtendo informações do SIGTAP...")
-
-  load(here("data", "procedure_details.rda"))
-  load(here("data", "cbo.rda"))
-
-  print("Informações do SIGTAP obtidas com sucesso!")
-
   print("Preparando a base de dados final...")
 
   SIA_df <- temp_df %>%
@@ -149,5 +130,35 @@ create_output_SIA <- function(year_start, month_start,
   return(SIA_df)
 }
 
+# Helpers ----------------------------------------------------------------------
+
+get_counties_by_state <- function(state_abbr) {
+  base_url <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
+
+  state_id <- base_url %>%
+    httr::GET() %>%
+    httr::content() %>%
+    tibble() %>%
+    unnest_auto(col=".") %>%
+    filter(sigla == state_abbr) %>%
+    pull(id)
+
+  request_url <- str_glue("{base_url}/{state_id}/municipios")
+
+  response_content <- request_url %>%
+    httr::GET() %>%
+    httr::content() %>%
+    tibble() %>%
+    unnest_auto(col=".") %>%
+    unnest_wider(col="microrregiao", names_sep="_") %>%
+    unnest_wider(col="microrregiao_mesorregiao", names_sep="_") %>%
+    select(id, nome, microrregiao_nome, microrregiao_mesorregiao_nome) %>%
+    rename(nm_mun = nome, id_mun = id,
+           nm_micror = microrregiao_nome,
+           nm_mesor = microrregiao_mesorregiao_nome) %>%
+    mutate(id_mun = str_sub(id_mun, 1, 6))
+
+  return(response_content)
+}
 
 

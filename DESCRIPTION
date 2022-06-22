@@ -24,6 +24,10 @@ Imports:
     readr,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    utils
 URL: https://github.com/tivorn/faturamento.sus
 BugReports: https://github.com/tivorn/faturamento.sus/issues
+Depends: 
+    R (>= 2.10)
+LazyData: true

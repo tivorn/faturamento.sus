@@ -31,9 +31,10 @@ create_output_SIA(year_start=2021,
 ```
 
 2) Obter painel Power BI
-Uma vez que a função foi executada, é necessário baixar o modelo do painel Power BI presente neste repositório no diretório `inst/extdata`.
 
-3) Carregar base de dados 
+3) Uma vez que a função foi executada, é necessário baixar o modelo do painel Power BI presente neste repositório no diretório `inst/extdata`.
+
+4) Carregar base de dados 
 
 No painel, na barra superior clique em "Página Inicial" > "Obter dados" > "Texto/CSV" e selecione o arquivo `outputSIA.csv`
 

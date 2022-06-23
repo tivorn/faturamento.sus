@@ -93,7 +93,7 @@ create_output_SIA <- function(year_start, month_start,
 
   print("Preparando a base de dados final...")
 
-  SIA_df <- temp_df %>%
+  outputSIA <- temp_df %>%
     mutate(cbo = as.character(cbo), cnes = as.character(cnes)) %>%
     left_join(cnes_df, by=c("cnes" = "CNES")) %>%
     left_join(procedure_details, by = c("proc_cod" = "CO_PROCEDIMENTO")) %>%
@@ -125,9 +125,13 @@ create_output_SIA <- function(year_start, month_start,
            `Mesorregião` = nm_mesor
     )
 
-  write.csv2(SIA_df, "outputSIA.csv", na="", dec=",")
+  #output_dir <- system.file("extdata", package="faturamento.sus")
+  #output_file_path <- str_glue("{output_dir}/outputSIA.RData")
+  #save(outputSIA, file=output_file_path)
 
-  return(SIA_df)
+  write.csv2(outputSIA, "outputSIA.csv", dec=",", row.names=FALSE, na="")
+
+  return(outputSIA)
 }
 
 # Helpers ----------------------------------------------------------------------

@@ -25,5 +25,6 @@
 #' @importFrom tidyr unnest_longer
 #' @importFrom tidyr unnest_wider
 #' @importFrom utils write.csv2
+#' @importFrom writexl write_xlsx
 ## usethis namespace: end
 NULL

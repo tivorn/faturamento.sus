@@ -1,10 +1,10 @@
 Package: faturamento.sus
-Title: Preprocess SIA-PA DATASUS database
+Title: Preprocess SIA/SIH DATASUS database
 Version: 0.0.0.9000
 Authors@R: 
     person("Victor", "Fernandes", , "first.last@example.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Preprocess SIA-PA DATASUS and match with CNES and SIGTAP informations
+Description: Preprocess SIA/SIH DATASUS and match with CNES and SIGTAP informations
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
@@ -25,7 +25,8 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils
+    utils,
+    writexl
 URL: https://github.com/tivorn/faturamento.sus
 BugReports: https://github.com/tivorn/faturamento.sus/issues
 Depends: 

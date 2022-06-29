@@ -4,9 +4,9 @@
 \name{faturamento.sus-package}
 \alias{faturamento.sus}
 \alias{faturamento.sus-package}
-\title{faturamento.sus: Preprocess SIA-PA DATASUS database}
+\title{faturamento.sus: Preprocess SIA/SIH DATASUS database}
 \description{
-Preprocess SIA-PA DATASUS and match with CNES and SIGTAP informations
+Preprocess SIA/SIH DATASUS and match with CNES and SIGTAP informations
 }
 \seealso{
 Useful links:

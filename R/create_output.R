@@ -1,7 +1,7 @@
-#' Create SUS-SIA database
+#' Create SUS-SIA/SIH database
 #'
 #' @description
-#' [create_output_SIA] preprocess microdata files from SIA-PA information system (DataSUS)
+#' [create_output] preprocess microdata files from SIA and SIH information systems (DATASUS)
 #' and match with CNES and SIGTAP information.
 #'
 #' @param year_start Ano de início da realização do procedimento
@@ -9,44 +9,37 @@
 #' @param year_end Ano de término da realização do procedimento
 #' @param month_end Mês de término da realização do procedimento
 #' @param uf Sigla da Unidade Federativa
-#' @param CNES Código(s) do estabelecimento de saúde
+#' @param health_establishment_id Código(s) do estabelecimento de saúde
 #'
 #' @examples
-#' \dontrun{create_output_SIA(year_start=2021,
+#' \dontrun{create_output(year_start=2021,
 #'                   month_start=1,
 #'                   year_end=2021,
 #'                   month_end=3,
 #'                   uf="CE",
-#'                   CNES=c("2561492","2481286")
+#'                   health_establishment_id=c("2561492","2481286")
 #'                   )}
 
 
 #' @export
-create_output_SIA <- function(year_start, month_start,
-                              year_end, month_end, uf, CNES) {
-
-  raw_df <- fetch_datasus(year_start,
-                          month_start,
-                          year_end,
-                          month_end,
-                          uf,
-                          information_system="SIA-PA")
-
-  print("Download dos arquivos do DATASUS SIA-PA concluídos!")
+create_output <- function(year_start, month_start,
+                          year_end, month_end, uf,
+                          health_establishment_id) {
 
   counties <- get_counties_by_state(uf)
 
-  print("Informações do Estado obtidas com sucesso!")
-
   procedure_start = str_glue("{year_start}-{month_start}")
 
-  data(sysdata, envir=environment())
+  # ---- Produção Ambulatorial ---- #
 
-  print("Informações auxiliares carregadas com sucesso!")
+  raw_SIA <- fetch_datasus(year_start,
+                           month_start,
+                           year_end,
+                           month_end,
+                           uf,
+                           information_system = "SIA-PA")
 
-  print("Realizando preprocessamento dos dados...")
-
-  temp_df <- raw_df %>%
+  outputSIA <- raw_SIA %>%
     janitor::clean_names() %>%
     as_tibble() %>%
     select(cnes = pa_coduni,
@@ -86,14 +79,8 @@ create_output_SIA <- function(year_start, month_start,
            proc_grupo_cod = str_sub(proc_cod, 1, 2),
            proc_sub_grupo_cod = str_sub(proc_cod, 3, 4),
            proc_forma_org_cod = str_sub(proc_cod, 5, 6)) %>%
-    filter(cnes %in% CNES,
-           anomes_cmp >= ym(procedure_start))
-
-  print("Preprocessamento dos dados concluido!")
-
-  print("Preparando a base de dados final...")
-
-  outputSIA <- temp_df %>%
+    filter(cnes %in% health_establishment_id,
+           anomes_cmp >= ym(procedure_start)) %>%
     mutate(cbo = as.character(cbo), cnes = as.character(cnes)) %>%
     left_join(cnes_df, by=c("cnes" = "CNES")) %>%
     left_join(procedure_details, by = c("proc_cod" = "CO_PROCEDIMENTO")) %>%
@@ -125,44 +112,63 @@ create_output_SIA <- function(year_start, month_start,
            `Mesorregião` = nm_mesor
     )
 
-  #output_dir <- system.file("extdata", package="faturamento.sus")
-  #output_file_path <- str_glue("{output_dir}/outputSIA.RData")
-  #save(outputSIA, file=output_file_path)
+  # ---- Produção Hospitalar ---- #
 
-  write.csv2(outputSIA, "outputSIA.csv", dec=",", row.names=FALSE, na="")
+  raw_RD <- fetch_datasus(year_start,
+                          month_start,
+                          year_end,
+                          month_end,
+                          uf,
+                          information_system="SIH-RD")
 
-  return(outputSIA)
+  raw_RJ <- fetch_datasus(year_start,
+                          month_start,
+                          year_end,
+                          month_end,
+                          uf="CE",
+                          information_system="SIH-RJ")
+
+  outputSIH <- raw_RD %>%
+    as_tibble() %>%
+    bind_rows(raw_RJ, .id = "TIPO") %>%
+    mutate(TIPO = ifelse(TIPO == "1", "Aprovada", "Rejeitada"),
+           DT_CMPT = ym(str_c(ANO_CMPT, MES_CMPT, sep="-")),
+           QTD_AIH = 1) %>%
+    filter(DT_CMPT >= ym(procedure_start),
+           CNES %in% health_establishment_id) %>%
+    left_join(counties, by=c("MUNIC_RES" = "id_mun")) %>%
+    left_join(cnes_df, by="CNES") %>%
+    left_join(procedure_details, by = c("PROC_REA" = "CO_PROCEDIMENTO")) %>%
+    mutate(CNES = str_c(CNES, FANTASIA, sep="-")) %>%
+    select(`Situação da AIH` = TIPO,
+           `Ano de processamento` = ANO_CMPT,
+           `Mês de processamento` = MES_CMPT,
+           `Mês/Ano de processamento` = DT_CMPT,
+           Estabelecimento = CNES,
+           Procedimentos = NO_PROCEDIMENTO,
+           Grupo = NO_GRUPO,
+           `Sub-grupo` = NO_SUB_GRUPO,
+           `Forma de organização` = NO_FORMA_ORGANIZACAO,
+           Complexidade = complexidade,
+           `Tipo de financiamento` = NO_FINANCIAMENTO,
+           `Tipo de sub-financiamento` = NO_SUB_FINANCIAMENTO,
+           Financeiro = VAL_TOT,
+           Quantidade = QTD_AIH,
+           `N° da AIH` = N_AIH,
+           `Município` = nm_mun,
+           `Mesorregião` = nm_mesor,
+           `Microrregião` = nm_micror
+    )
+
+  writexl::write_xlsx(
+    list(outputSIA = outputSIA,
+         outputSIH = outputSIH),
+    path = "output.xlsx"
+  )
+
+  return(list(outputSIA, outputSIH))
 }
 
-# Helpers ----------------------------------------------------------------------
 
-get_counties_by_state <- function(state_abbr) {
-  base_url <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
-
-  state_id <- base_url %>%
-    httr::GET() %>%
-    httr::content() %>%
-    tibble() %>%
-    unnest_auto(col=".") %>%
-    filter(sigla == state_abbr) %>%
-    pull(id)
-
-  request_url <- str_glue("{base_url}/{state_id}/municipios")
-
-  response_content <- request_url %>%
-    httr::GET() %>%
-    httr::content() %>%
-    tibble() %>%
-    unnest_auto(col=".") %>%
-    unnest_wider(col="microrregiao", names_sep="_") %>%
-    unnest_wider(col="microrregiao_mesorregiao", names_sep="_") %>%
-    select(id, nome, microrregiao_nome, microrregiao_mesorregiao_nome) %>%
-    rename(nm_mun = nome, id_mun = id,
-           nm_micror = microrregiao_nome,
-           nm_mesor = microrregiao_mesorregiao_nome) %>%
-    mutate(id_mun = str_sub(id_mun, 1, 6))
-
-  return(response_content)
-}
 
 

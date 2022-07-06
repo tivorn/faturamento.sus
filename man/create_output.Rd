@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_output.R
 \name{create_output}
 \alias{create_output}
-\title{Create SUS-SIA database}
+\title{Create SUS-SIA/SIH database}
 \usage{
 create_output(
   year_start,
@@ -10,7 +10,7 @@ create_output(
   year_end,
   month_end,
   uf,
-  health_establishment_id
+  health_establishment_id = "all"
 )
 }
 \arguments{

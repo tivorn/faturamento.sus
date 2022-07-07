@@ -9,8 +9,9 @@ create_output(
   month_start,
   year_end,
   month_end,
-  uf,
-  health_establishment_id = "all"
+  state_abbr,
+  health_establishment_id = "all",
+  chunk_size
 )
 }
 \arguments{
@@ -22,7 +23,7 @@ create_output(
 
 \item{month_end}{Mês de término da realização do procedimento}
 
-\item{uf}{Sigla da Unidade Federativa}
+\item{state_abbr}{Sigla da Unidade Federativa}
 
 \item{health_establishment_id}{Código(s) do estabelecimento de saúde}
 }
@@ -35,7 +36,7 @@ and match with CNES and SIGTAP information.
                   month_start=1,
                   year_end=2021,
                   month_end=3,
-                  uf="CE",
+                  state_abbr="CE",
                   health_establishment_id=c("2561492","2481286")
                   )}
 }

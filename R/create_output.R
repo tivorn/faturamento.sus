@@ -55,6 +55,42 @@ create_output <- function(year_start, month_start,
   return(list(outputSIA, outputSIH))
 }
 
+#' Create SUS-SIA/SIH database from local DBC files
+#'
+#' @description
+#' [create_output_from_local] preprocess DBC files from SIA and SIH information systems (DATASUS)
+#' and match with CNES and SIGTAP information.
+#'
+
+#' @param dbc_dir_path Diretório que contêm os arquivos DBC
+#' @param health_establishment_id Código(s) do estabelecimento de saúde
+#'
+#' @examples
+#' \dontrun{create_output(tempdir(),
+#'                        health_establishment_id=c("2561492","2481286")
+#'                        )}
+
+
+#' @export
+create_output_from_local <- function(dbc_dir_path, health_establishment_id) {
+  outputSIA <- get_datasus_from_local(
+    dbc_dir_path,
+    information_system = "SIA",
+    health_establishment_id
+  )
+
+  outputSIH <- get_datasus_from_local(
+    dbc_dir_path,
+    information_system = "SIH",
+    health_establishment_id
+  )
+
+  write.csv2(outputSIA, "outputSIA.csv", na="", row.names=FALSE)
+  write.csv2(outputSIH, "outputSIH.csv", na="", row.names=FALSE)
+
+  return(list(outputSIA, outputSIH))
+}
+
 
 
 

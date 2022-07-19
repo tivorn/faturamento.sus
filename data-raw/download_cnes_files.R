@@ -44,15 +44,16 @@ download_cnes_files <- function(year_start, month_start, year_end, month_end, ne
 
 download_cnes_files(newer=TRUE)
 
-cnes_df <- here("data-raw", "CNES", "ST") %>%
+health_establishment <- here("data-raw", "CNES", "ST") %>%
   list.files(full.names = TRUE) %>%
   map_dfr(read.dbc, as.is=TRUE)
 
-cnes_aux <- here("data-raw", "CNES", "CADGER") %>%
+health_establishment_details <- here("data-raw", "CNES", "CADGER") %>%
   list.files(full.names = TRUE) %>%
   map_dfr(read.dbf, as.is=TRUE)
 
-cnes_df <- cnes_df %>%
-  left_join(cnes_aux, by="CNES") %>%
+health_establishment <- health_establishment %>%
+  left_join(health_establishment_details, by="CNES") %>%
   select(CNES, FANTASIA, COMPETEN) %>%
+  mutate(NO_ESTABELECIMENTO = str_c(CNES, FANTASIA, sep="-")) %>%
   as_tibble()

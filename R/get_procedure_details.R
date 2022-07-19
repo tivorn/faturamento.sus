@@ -111,11 +111,11 @@ get_detail <- function(detail_name) {
 
 get_procedure_details <- function() {
 
-  detail_names <- c("Procedimento", "Grupo", "Subgrupo", "Forma de organização",
-                    "Financiamento", "Rubrica")
+  # TO-DO ---------------------------------------------------------------------#
+
+  # 1. Verificar se os arquivos SIGTAP existem
 
   procedure_main_details <- get_detail("Procedimento")
-
   procedure_group <- get_detail("Grupo")
   procedure_sub_group <- get_detail("Subgrupo")
   procedure_organization_form <- get_detail("Forma de organização")
@@ -133,19 +133,17 @@ get_procedure_details <- function() {
     left_join(procedure_rubric, by=c("file_version_id", "CO_RUBRICA")) %>%
     select(-starts_with("DT_COMPETENCIA")) %>%
     group_by(CO_PROCEDIMENTO) %>%
-    mutate(procedure_start_date = ym(file_version_id),
-           procedure_end_date = lead(procedure_start_date, default = today()),
-           NO_PROCEDIMENTO = str_c(CO_PROCEDIMENTO, NO_PROCEDIMENTO, sep="-"),
+    mutate(NO_PROCEDIMENTO = str_c(CO_PROCEDIMENTO, NO_PROCEDIMENTO, sep="-"),
            NO_GRUPO = str_c(CO_GRUPO, NO_GRUPO, sep="-"),
            NO_SUB_GRUPO = str_c(CO_SUB_GRUPO, NO_SUB_GRUPO, sep="-"),
            NO_FINANCIAMENTO = str_c(CO_FINANCIAMENTO, NO_FINANCIAMENTO, sep="-"),
            NO_FORMA_ORGANIZACAO = str_c(CO_FORMA_ORGANIZACAO, NO_FORMA_ORGANIZACAO, sep="-"),
            NO_SUB_FINANCIAMENTO = str_c(CO_RUBRICA, NO_RUBRICA, sep="-"),
-           complexidade = case_when(TP_COMPLEXIDADE == 0 ~ "Não se Aplica",
+           COMPLEXIDADE = case_when(TP_COMPLEXIDADE == 0 ~ "Não se Aplica",
                                     TP_COMPLEXIDADE == 1 ~ "Atenção Básica",
                                     TP_COMPLEXIDADE == 2 ~ "Média Complexidade",
                                     TP_COMPLEXIDADE == 3 ~ "Alta Complexidade"),
-           complexidade = str_c(TP_COMPLEXIDADE, complexidade, sep="-"),
+           COMPLEXIDADE = str_c(TP_COMPLEXIDADE, COMPLEXIDADE, sep="-"),
            across(everything(), str_trim))
 
   return(procedure_details)

@@ -4,12 +4,12 @@ check_health_establishment <- function(df, health_establishment_id) {
 
       return(df)
     } else {
-      filtered_df <- filter(df, cnes == health_establishment_id)
+      filtered_df <- filter(df, CNES == health_establishment_id)
 
       return(filtered_df)
     }
   } else {
-    filtered_df <- filter(df, cnes %in% health_establishment_id)
+    filtered_df <- filter(df, CNES %in% health_establishment_id)
 
     return(filtered_df)
   }
@@ -17,83 +17,62 @@ check_health_establishment <- function(df, health_establishment_id) {
 
 preprocess_SIA <- function(raw_SIA,
                            health_establishment_id,
-                           counties,
                            publication_date_start,
                            procedure_details,
                            cbo) {
   outputSIA <- raw_SIA %>%
-    janitor::clean_names() %>%
     as_tibble() %>%
-    select(cnes = pa_coduni,
-           anomes_mvm = pa_mvm,
-           anomes_cmp = pa_cmp,
-           proc_cod = pa_proc_id,
-           proc_tipo_financ_cod = pa_tpfin,
-           proc_sub_financ_cod = pa_subfin,
-           proc_complex_cod = pa_nivcpl,
-           qtd = pa_qtdpro,
-           qtd_apr = pa_qtdapr,
-           val = pa_valpro,
-           val_apr = pa_valapr,
-           docorig = pa_docorig,
-           cbo = pa_cbocod,
-           cnpj_executor = pa_cnpjcpf,
-           id_mun = pa_munpcn)   %>%
-    left_join(counties, by="id_mun") %>%
-    mutate(across(c(anomes_mvm, anomes_cmp),ym),
-           qtd_ato_prof = qtd,
-           base = "Ambulatorial",
-           id_uf = str_sub(id_mun, 1, 2),
-           across(c(nm_mun, nm_micror, nm_mesor),
-                  ~ case_when(id_uf == 23 ~ .x,
-                              id_uf == 99 ~ "Não informado",
-                              id_uf != 23 ~ "Outros")),
-           proc_registro = case_when(docorig == "C" ~ "BPA - Consolidado",
-                                     docorig == "I" ~ "BPA - Individualizado",
-                                     docorig == "P" ~ "APAC - Procedimento Principal",
-                                     docorig == "S" ~ "APAC - Procedimento Secundário"),
-           proc_sub_financ_cod = if_else(proc_sub_financ_cod == "0000", NA_character_,
-                                         str_c(proc_tipo_financ_cod, proc_sub_financ_cod)),
-           ano_mvm = year(anomes_mvm),
-           mes_mvm = month(anomes_mvm),
-           ano_cmp = year(anomes_cmp),
-           mes_cmp = month(anomes_cmp),
-           proc_grupo_cod = str_sub(proc_cod, 1, 2),
-           proc_sub_grupo_cod = str_sub(proc_cod, 3, 4),
-           proc_forma_org_cod = str_sub(proc_cod, 5, 6),
-           file_version_id = format(anomes_cmp, "%Y%m")) %>%
+    rename(CNES = PA_CODUNI) %>%
     check_health_establishment(health_establishment_id) %>%
-    filter(anomes_cmp >= publication_date_start) %>%
-    mutate(cbo = as.character(cbo), cnes = as.character(cnes)) %>%
-    left_join(cnes_df,by=c("cnes" = "CNES")) %>%
-    left_join(procedure_details,
-              by = c("proc_cod" = "CO_PROCEDIMENTO", "file_version_id")) %>%
-    left_join(cbo, by=c("cbo" = "CO_OCUPACAO", "file_version_id")) %>%
-    mutate(nm_cbo = str_c(as.character(cbo), NO_OCUPACAO, sep="-"),
-           estabelecimento = str_c(cnes, FANTASIA, sep="-")) %>%
-    select(Procedimentos = NO_PROCEDIMENTO,
+    filter(ym(PA_CMP) >= publication_date_start) %>%
+    left_join(counties, by=c("PA_MUNPCN" = "id_municipio")) %>%
+    left_join(procedure_details, c("PA_PROC_ID" = "CO_PROCEDIMENTO",
+                                   "PA_CMP" = "file_version_id")) %>%
+    left_join(cbo, by=c("PA_CBOCOD" = "CO_OCUPACAO",
+                        "PA_CMP" = "file_version_id")) %>%
+    left_join(health_establishment, by="CNES") %>%
+    mutate(DT_CMP = ym(PA_CMP),
+           ANO_CMP = year(DT_CMP),
+           MES_CMP = year(DT_CMP),
+           DT_MVM = ym(PA_MVM),
+           ANO_MVM = year(DT_MVM),
+           MES_MVM = month(DT_MVM),
+           TIPO_REGISTRO = case_when(PA_DOCORIG == "C" ~ "BPA - Consolidado",
+                                     PA_DOCORIG == "I" ~ "BPA - Individualizado",
+                                     PA_DOCORIG == "P" ~ "APAC - Procedimento Principal",
+                                     PA_DOCORIG == "S" ~ "APAC - Procedimento Secundário"),
+           PA_UFUNI = str_sub(PA_UFMUN, 1, 2),
+           PA_UFPCN = str_sub(PA_MUNPCN, 1, 2),
+           across(c(nome_estado, nome_microrregiao, nome_mesorregiao, nome_municipio),
+                  ~ case_when(PA_UFUNI == PA_UFPCN ~ .x,
+                              PA_UFUNI != PA_UFPCN ~ "Outros",
+                              PA_UFUNI == 99 | PA_UFPCN == 99 ~ "Não informado"
+                  ))
+    ) %>%
+    select(`Mês/Ano de realiz.` = DT_CMP,
+           `Ano de realiz.` = ANO_CMP,
+           `Mês de realiz.` = MES_CMP,
+           `Mês/Ano de proces.` = DT_MVM,
+           `Ano de proces` = ANO_MVM,
+           `Mês de proces.` = MES_MVM,
+           Procedimentos = NO_PROCEDIMENTO,
            Grupo = NO_GRUPO,
            `Sub-grupo` = NO_SUB_GRUPO,
+           `Forma de organização` = NO_FORMA_ORGANIZACAO,
            `Tipo de financiamento` = NO_FINANCIAMENTO,
            `Tipo de sub-financiamento` = NO_SUB_FINANCIAMENTO,
-           Complexidade = complexidade,
-           `Forma de organização` = NO_FORMA_ORGANIZACAO,
-           ` Qtde. produzida` = qtd,
-           ` Qtde. aprovada` = qtd_apr,
-           ` Financeiro produzido` = val,
-           ` Financeiro aprovado` = val_apr,
-           `Mês/Ano de proces.` = anomes_mvm,
-           `Ano de proces` = ano_mvm,
-           `Mês de realiz.` = mes_cmp,
-           `Mês/Ano de realiz.` = anomes_cmp,
-           `Ano de realiz.` = ano_cmp,
-           `Mês de process.` = mes_mvm,
-           `Tipo de registro` = proc_registro,
-           `CBO do profissional` = nm_cbo,
-           Estabelecimento = estabelecimento,
-           `Município` = nm_mun,
-           `Microrregião` = nm_micror,
-           `Mesorregião` = nm_mesor
+           `CBO do profissional` = NO_OCUPACAO,
+           `Tipo de registro` = TIPO_REGISTRO,
+           Complexidade = COMPLEXIDADE,
+           ` Qtde. aprovada` = PA_QTDAPR,
+           ` Qtde. produzida` = PA_QTDPRO,
+           ` Financeiro produzido` = PA_VALAPR,
+           ` Financeiro aprovado` = PA_VALPRO,
+           Estabelecimento = NO_ESTABELECIMENTO,
+           `Município` = nome_municipio,
+           `Microrregião` = nome_microrregiao,
+           `Mesorregião` = nome_mesorregiao,
+           Estado = nome_estado,
     )
 
   return(outputSIA)
@@ -101,45 +80,124 @@ preprocess_SIA <- function(raw_SIA,
 
 preprocess_SIH <- function(raw_SIH,
                            health_establishment_id,
-                           counties,
                            publication_date_start,
                            procedure_details,
                            cbo) {
   outputSIH <- raw_SIH %>%
     as_tibble() %>%
-    janitor::clean_names() %>%
-    mutate(tipo = ifelse(tipo == "1", "Aprovada", "Rejeitada"),
-           dt_cmpt = ym(str_c(ano_cmpt, mes_cmpt, sep="-")),
-           qtd_aih = 1,
-           file_version_id = format(dt_cmpt, "%Y%m")) %>%
+    mutate(TIPO = ifelse(TIPO == "1", "Aprovada", "Rejeitada"),
+           DT_CMPT = ym(str_c(ANO_CMPT, MES_CMPT, sep="-")),
+           QTD_AIH = 1,
+           ANOMES_CMPT = format(DT_CMPT, "%Y%m")) %>%
     check_health_establishment(health_establishment_id) %>%
-    filter(dt_cmpt >= publication_date_start) %>%
-    left_join(counties, by=c("munic_res" = "id_mun")) %>%
-    left_join(cnes_df,by=c("cnes" = "CNES")) %>%
-    left_join(procedure_details,
-              by = c("proc_rea" = "CO_PROCEDIMENTO", "file_version_id")) %>%
-    mutate(CNES = str_c(cnes, FANTASIA, sep="-")) %>%
-    select(`Situação da AIH` = tipo,
-           `Ano de processamento` = ano_cmpt,
-           `Mês de processamento` = mes_cmpt,
-           `Mês/Ano de processamento` = dt_cmpt,
-           Estabelecimento = CNES,
+    filter(DT_CMPT >= publication_date_start) %>%
+    left_join(counties, by=c("MUNIC_RES" = "id_municipio")) %>%
+    left_join(procedure_details, c("PROC_REA" = "CO_PROCEDIMENTO",
+                                   "ANOMES_CMPT" = "file_version_id")) %>%
+    left_join(health_establishment, by="CNES") %>%
+    mutate(across(c(nome_estado, nome_microrregiao, nome_mesorregiao, nome_municipio),
+                  ~ case_when(UF_ZI == MUNIC_RES ~ .x,
+                              UF_ZI != MUNIC_RES ~ "Outros",
+                              UF_ZI == 99 | MUNIC_RES == 99 ~ "Não informado"
+                  ))) %>%
+    select(`Situação da AIH` = TIPO,
+           `Ano de processamento` = ANO_CMPT,
+           `Mês de processamento` = MES_CMPT,
+           `Mês/Ano de processamento` = DT_CMPT,
+           Estabelecimento = NO_ESTABELECIMENTO,
            Procedimentos = NO_PROCEDIMENTO,
            Grupo = NO_GRUPO,
            `Sub-grupo` = NO_SUB_GRUPO,
            `Forma de organização` = NO_FORMA_ORGANIZACAO,
-           Complexidade = complexidade,
+           Complexidade = COMPLEXIDADE,
            `Tipo de financiamento` = NO_FINANCIAMENTO,
            `Tipo de sub-financiamento` = NO_SUB_FINANCIAMENTO,
-           Financeiro = val_tot,
-           Quantidade = qtd_aih,
-           `N° da AIH` = n_aih,
-           `Município` = nm_mun,
-           `Mesorregião` = nm_mesor,
-           `Microrregião` = nm_micror
+           Financeiro = VAL_TOT,
+           Quantidade = QTD_AIH,
+           `N° da AIH` = N_AIH,
+           `Município` = nome_municipio,
+           `Mesorregião` = nome_mesorregiao,
+           `Microrregião` = nome_microrregiao,
+           Estado = nome_estado
     )
 
   return(outputSIH)
+}
+
+preprocess_SIH_SP <- function(raw_SIH_SP,
+                              health_establishment_id,
+                              publication_date_start,
+                              procedure_details,
+                              cbo) {
+  outputSIH_SP <- raw_SIH_SP %>%
+    as_tibble() %>%
+    rename(CNES = SP_CNES) %>%
+    check_health_establishment(health_establishment_id) %>%
+    filter(SP_AA >= year(publication_date_start)) %>%
+    mutate(ANOMES_MVM = str_c(SP_AA, SP_MM),
+           MESANO_MVM = str_c(SP_MM, SP_AA, sep="-"),
+           DT_INTER = ymd(SP_DTINTER),
+           ANO_INT = str_sub(SP_DTINTER, 1, 4),
+           MES_INT = str_sub(SP_DTINTER, 5, 6),
+           ANOMES_INT = str_c(ANO_INT, MES_INT),
+           MESANO_INT = str_c(MES_INT, ANO_INT, sep="-")) %>%
+    left_join(counties, by=c("SP_M_PAC" = "id_municipio")) %>%
+    left_join(procedure_details, c("SP_PROCREA" = "CO_PROCEDIMENTO",
+                                   "ANOMES_MVM" = "file_version_id")) %>%
+    left_join(cbo, by=c("SP_PF_CBO" = "CO_OCUPACAO",
+                        "ANOMES_MVM" = "file_version_id")) %>%
+    left_join(health_establishment, by="CNES") %>%
+    mutate(SP_UF_HOSP = str_sub(SP_M_HOSP, 1, 2),
+           SP_UF_PAC = str_sub(SP_M_PAC, 1, 2),
+           IN_TP_VAL = case_when(IN_TP_VAL == 1 ~ "Serviço Hospitalar",
+                                 IN_TP_VAL == 2 ~ "Serviço Profissional"),
+           NO_OCUPACAO = str_c(SP_PF_CBO, NO_OCUPACAO, sep="-"),
+           across(c(nome_estado, nome_microrregiao, nome_mesorregiao, nome_municipio),
+                  ~ case_when(SP_UF_HOSP == SP_UF_PAC ~ .x,
+                              SP_UF_HOSP != SP_UF_PAC ~ "Outros",
+                              SP_UF_HOSP == 99 | SP_UF_PAC == 99 ~ "Não informado"
+                  ))
+    ) %>%
+    select(`Data Internação` = DT_INTER,
+           `Mês/Ano Internação` = MESANO_INT,
+           `Ano/Mês Internação` = ANOMES_INT,
+           `Ano Internação` = ANO_INT,
+           `Mês Internação` = MES_INT,
+
+           `Mês/Ano Processamento` = MESANO_MVM,
+           `Ano/Mês Processamento` = ANOMES_MVM,
+           `Ano Processamento` = SP_AA,
+           `Mês Processamento` = SP_MM,
+
+           `Quantidade Aprovada` = SP_QT_PROC,
+           `Valor Aprovado` = SP_VALATO,
+           `Quantidade de Ato` = SP_QTD_ATO,
+           `Frequência` = SP_U_AIH,
+
+           `N° da AIH` = SP_NAIH,
+
+           `Procedimentos Secundários` = NO_PROCEDIMENTO,
+           `Grupo Proc. Secundário` = NO_GRUPO,
+           `Sub-grupo Proc. Secundário` = NO_SUB_GRUPO,
+           `Forma de organização Secundária` = NO_FORMA_ORGANIZACAO,
+
+           `Tipo de financiamento do ato profissional` = NO_FINANCIAMENTO,
+           `Subtipo FAEC do ato profissional` = NO_SUB_FINANCIAMENTO,
+           `Complexidade do ato profissional` = COMPLEXIDADE,
+
+           `Tipo de Valor` = IN_TP_VAL,
+
+           `Ocupação` = NO_OCUPACAO,
+
+           Estabelecimento = NO_ESTABELECIMENTO,
+
+           `Município` = nome_municipio,
+           `Microrregião` = nome_microrregiao,
+           `Mesorregião` = nome_mesorregiao,
+           Estado = nome_estado,
+    )
+
+  return(outputSIH_SP)
 }
 
 get_datasus <- function(year_start, month_start,
@@ -147,18 +205,8 @@ get_datasus <- function(year_start, month_start,
                         information_system, health_establishment_id,
                         chunk_size) {
 
-  # TO-DO ----------------------------------------------------------------------
-
-  # 1. Implementar cálculo automático do tamanho do bloco
-  # 2. Lidar com casos em que o tamanho do bloco não é divisível pela
-  # quantidade de arquivos
-
-  # ----------------------------------------------------------------------------
-
   publication_date_start <- ym(str_glue("{year_start}-{month_start}"))
   publication_date_end <- ym(str_glue("{year_end}-{month_end}"))
-
-  counties <- get_counties_by_state(state_abbr)
 
   download_sigtap_files(year_start, month_start,
                         year_end, month_end, newer=FALSE)
@@ -168,15 +216,17 @@ get_datasus <- function(year_start, month_start,
 
   tmp_dir <- tempdir()
 
-  information_system_dir <- str_glue("{tmp_dir}\\{information_system}")
-
+  data_source = str_sub(information_system, 1, 3)
   data_type = switch(information_system,
                      "SIA" = "PA",
-                     "SIH" = c("RD", "RJ"))
+                     "SIH-AIH" = c("RD", "RJ"),
+                     "SIH-SP" = "SP")
+
+  information_system_dir <- str_glue("{tmp_dir}\\{information_system}")
 
   dir.create(information_system_dir)
 
-  base_url <- str_glue({"ftp://ftp.datasus.gov.br/dissemin/publicos/{information_system}SUS/200801_/Dados/"})
+  base_url <- str_glue("ftp://ftp.datasus.gov.br/dissemin/publicos/{data_source}SUS/200801_/Dados/")
 
   connection <- curl(base_url)
 
@@ -196,12 +246,14 @@ get_datasus <- function(year_start, month_start,
 
   files_name <- pull(dir_files, file_name)
   n_files <- files_name %>% length()
+  chunk_size <- ceiling(0.2*n_files)
   n_chunks <- ceiling(n_files/chunk_size)
 
   files_chunks <- list()
   chunk = 1
   while (chunk <= n_chunks) {
-    files_chunks[[chunk]] <- files_name[(chunk_size*(chunk-1)+1):(chunk*chunk_size)]
+    upper_limit <- ifelse(chunk*chunk_size > n_files, n_files, chunk*chunk_size)
+    files_chunks[[chunk]] <- files_name[(chunk_size*(chunk-1)+1):upper_limit]
     names(files_chunks)[chunk] = str_glue("chunk_{chunk}")
     chunk = chunk + 1
   }
@@ -218,20 +270,30 @@ get_datasus <- function(year_start, month_start,
       output <- preprocess_SIA(
         raw_SIA,
         health_establishment_id,
-        counties,
         publication_date_start,
         procedure_details,
         cbo
       )
     }
 
-    if (information_system == "SIH") {
+    if (information_system == "SIH-AIH") {
       raw_SIH <- map_dfr(output_files_path, read.dbc, as.is=TRUE, .id="TIPO")
 
       output <- preprocess_SIH(
         raw_SIH,
         health_establishment_id,
-        counties,
+        publication_date_start,
+        procedure_details,
+        cbo
+      )
+    }
+
+    if (information_system == "SIH-SP") {
+      raw_SIH_SP <- map_dfr(output_files_path, read.dbc, as.is=TRUE)
+
+      output <- preprocess_SIH_SP(
+        raw_SIH_SP,
+        health_establishment_id,
         publication_date_start,
         procedure_details,
         cbo
@@ -255,16 +317,10 @@ get_datasus <- function(year_start, month_start,
 
 get_datasus_from_local <- function(dbc_dir_path, information_system,
                                    health_establishment_id) {
-  # TO-DO ----------------------------------------------------------------------
-
-  # 1. Obter competências contidas nos arquivos locais e fazer download dos
-  # respectivos layouts do SIGTAP
 
   data_type = switch(information_system,
                      "SIA" = "PA",
                      "SIH" = c("RD", "RJ"))
-
-  # ----------------------------------------------------------------------------
 
   files_path <- dbc_dir_path %>%
     str_c("\\", information_system) %>%
@@ -276,13 +332,22 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
     tibble::as_tibble_col(column_name = "file_name") %>%
     mutate(state = str_sub(file_name, 3, 4),
            publication_date = ym(str_sub(file_name, 5, 8)),
-           file_type = str_sub(file_name, 1, 2))
+           file_type = str_sub(file_name, 1, 2)) %>%
+    filter(file_type %in% data_type)
 
-  publication_date_start <- min(pull(dir_files, publication_date))
+  publication_date <- pull(dir_files, publication_date)
+  publication_date_start <- min(publication_date)
+  publication_date_end <- max(publication_date)
 
-  states <- dir_files %>% distinct(state) %>% pull(state)
+  download_sigtap_files(year_start = year(publication_date_start),
+                        month_start = month(publication_date_end),
+                        year_end = year(publication_date_end),
+                        month_end = month(publication_date_end),
+                        newer=FALSE)
 
-  counties <- purrr::map_df(states, get_counties_by_state)
+  procedure_details <- get_procedure_details()
+  cbo <- get_detail("CBO")
+
 
   if (information_system == "SIA") {
     raw_SIA <- map_dfr(files_path, read.dbc, as.is=TRUE)
@@ -290,8 +355,9 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
     output <- preprocess_SIA(
       raw_SIA,
       health_establishment_id,
-      counties,
-      publication_date_start
+      publication_date_start,
+      procedure_details,
+      cbo
     )
   }
 
@@ -301,8 +367,9 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
     output <- preprocess_SIH(
       raw_SIH,
       health_establishment_id,
-      counties,
-      publication_date_start
+      publication_date_start,
+      procedure_details,
+      cbo
     )
   }
 

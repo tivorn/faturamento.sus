@@ -38,21 +38,33 @@ create_output <- function(year_start, month_start,
     chunk_size
   )
 
-  outputSIH <- get_datasus(
+  outputSIH_AIH <- get_datasus(
     year_start,
     month_start,
     year_end,
     month_end,
     state_abbr,
-    information_system = "SIH",
+    information_system = "SIH-AIH",
+    health_establishment_id,
+    chunk_size
+  )
+
+  outputSIH_SP <- get_datasus(
+    year_start,
+    month_start,
+    year_end,
+    month_end,
+    state_abbr,
+    information_system = "SIH-SP",
     health_establishment_id,
     chunk_size
   )
 
   write.csv2(outputSIA, "outputSIA.csv", na="", row.names=FALSE)
-  write.csv2(outputSIH, "outputSIH.csv", na="", row.names=FALSE)
+  write.csv2(outputSIH_AIH, "outputSIH_AIH.csv", na="", row.names=FALSE)
+  write.csv2(outputSIH_SP, "outputSIH_SP.csv", na="", row.names=FALSE)
 
-  return(list(outputSIA, outputSIH))
+  return(list(outputSIA, outputSIH_AIH, outputSIH_SP))
 }
 
 #' Create SUS-SIA/SIH database from local DBC files

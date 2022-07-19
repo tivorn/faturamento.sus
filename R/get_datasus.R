@@ -202,8 +202,7 @@ preprocess_SIH_SP <- function(raw_SIH_SP,
 
 get_datasus <- function(year_start, month_start,
                         year_end, month_end, state_abbr,
-                        information_system, health_establishment_id,
-                        chunk_size) {
+                        information_system, health_establishment_id) {
 
   publication_date_start <- ym(str_glue("{year_start}-{month_start}"))
   publication_date_end <- ym(str_glue("{year_end}-{month_end}"))

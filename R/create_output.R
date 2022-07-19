@@ -24,8 +24,7 @@
 #' @export
 create_output <- function(year_start, month_start,
                           year_end, month_end, state_abbr,
-                          health_establishment_id="all",
-                          chunk_size) {
+                          health_establishment_id="all") {
 
   outputSIA <- get_datasus(
     year_start,
@@ -34,8 +33,7 @@ create_output <- function(year_start, month_start,
     month_end,
     state_abbr,
     information_system = "SIA",
-    health_establishment_id,
-    chunk_size
+    health_establishment_id
   )
 
   outputSIH_AIH <- get_datasus(
@@ -45,8 +43,7 @@ create_output <- function(year_start, month_start,
     month_end,
     state_abbr,
     information_system = "SIH-AIH",
-    health_establishment_id,
-    chunk_size
+    health_establishment_id
   )
 
   outputSIH_SP <- get_datasus(
@@ -56,8 +53,7 @@ create_output <- function(year_start, month_start,
     month_end,
     state_abbr,
     information_system = "SIH-SP",
-    health_establishment_id,
-    chunk_size
+    health_establishment_id
   )
 
   write.csv2(outputSIA, "outputSIA.csv", na="", row.names=FALSE)

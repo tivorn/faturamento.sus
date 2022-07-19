@@ -17,7 +17,7 @@ devtools::install_github("tivorn/faturamento.sus")
 
 ## Instruções de uso
 
-A utilização do pacote consiste no uso da função `create_output` que realiza o download e preprocessamento das bases de dados SIA e SIH do DATASUS. Além disso, a função mencionada retorna o arquivo `output.xlsx` na pasta em que o usuário executou o arquivo `.R`.
+A utilização do pacote consiste no uso da função `create_output` que realiza o download e preprocessamento das bases de dados SIA e SIH do DATASUS. Além disso, a função mencionada retorna os arquivos `.csv` na pasta em que o usuário executou o arquivo `.R`.
 
 1) Executar função `create_output`
 ```r
@@ -36,5 +36,5 @@ Uma vez que a função foi executada, é necessário baixar o modelo do painel P
 
 3) Carregar base de dados 
 
-No painel, na barra superior clique em "Página Inicial" > "Obter dados" > "Pasta de trabalho do Excel" e selecione o arquivo `output.xlsx`
+No painel, na barra superior clique em "Página Inicial" > "Obter dados" > "Pasta de trabalho do Excel" e selecione os arquivo `.csv` 
 

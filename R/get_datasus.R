@@ -82,10 +82,12 @@ preprocess_SIH <- function(raw_SIH,
                            health_establishment_id,
                            publication_date_start,
                            procedure_details,
-                           cbo) {
+                           cbo,
+                           file_type) {
   outputSIH <- raw_SIH %>%
     as_tibble() %>%
-    mutate(TIPO = ifelse(TIPO == "1", "Aprovada", "Rejeitada"),
+    left_join(file_type, by="file_id") %>%
+    mutate(TIPO = ifelse(file_type == "RD", "Aprovada", "Rejeitada"),
            DT_CMPT = ym(str_c(ANO_CMPT, MES_CMPT, sep="-")),
            QTD_AIH = 1,
            ANOMES_CMPT = format(DT_CMPT, "%Y%m")) %>%
@@ -276,14 +278,22 @@ get_datasus <- function(year_start, month_start,
     }
 
     if (information_system == "SIH-AIH") {
-      raw_SIH <- map_dfr(output_files_path, read.dbc, as.is=TRUE, .id="TIPO")
+      file_type <- output_files_path %>%
+        str_sub(start=-12) %>%
+        tibble::as_tibble_col(column_name = "file_name") %>%
+        mutate(file_type = str_sub(file_name, 1, 2),
+               file_id = as.character(row_number()))
+      select(file_type, file_id)
+
+      raw_SIH <- map_dfr(output_files_path, read.dbc, as.is=TRUE, .id="file_id")
 
       output <- preprocess_SIH(
         raw_SIH,
         health_establishment_id,
         publication_date_start,
         procedure_details,
-        cbo
+        cbo,
+        file_type
       )
     }
 

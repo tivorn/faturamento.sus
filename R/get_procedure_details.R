@@ -133,7 +133,10 @@ get_procedure_details <- function() {
     left_join(procedure_rubric, by=c("file_version_id", "CO_RUBRICA")) %>%
     select(-starts_with("DT_COMPETENCIA")) %>%
     group_by(CO_PROCEDIMENTO) %>%
-    mutate(NO_PROCEDIMENTO = str_c(CO_PROCEDIMENTO, NO_PROCEDIMENTO, sep="-"),
+    mutate(CO_GRUPO = str_sub(CO_PROCEDIMENTO, 1, 2),
+           CO_SUB_GRUPO = str_sub(CO_PROCEDIMENTO, 1, 4),
+           CO_FORMA_ORGANIZACAO = str_sub(CO_PROCEDIMENTO, 1, 6),
+           NO_PROCEDIMENTO = str_c(CO_PROCEDIMENTO, NO_PROCEDIMENTO, sep="-"),
            NO_GRUPO = str_c(CO_GRUPO, NO_GRUPO, sep="-"),
            NO_SUB_GRUPO = str_c(CO_SUB_GRUPO, NO_SUB_GRUPO, sep="-"),
            NO_FINANCIAMENTO = str_c(CO_FINANCIAMENTO, NO_FINANCIAMENTO, sep="-"),

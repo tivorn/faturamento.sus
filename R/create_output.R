@@ -87,16 +87,23 @@ create_output_from_local <- function(dbc_dir_path, health_establishment_id) {
     health_establishment_id
   )
 
-  outputSIH <- get_datasus_from_local(
+  outputSIH_AIH <- get_datasus_from_local(
     dbc_dir_path,
-    information_system = "SIH",
+    information_system = "SIH-AIH",
+    health_establishment_id
+  )
+
+  outputSIH_SP <- get_datasus_from_local(
+    dbc_dir_path,
+    information_system = "SIH-SP",
     health_establishment_id
   )
 
   write.csv2(outputSIA, "outputSIA.csv", na="", row.names=FALSE)
-  write.csv2(outputSIH, "outputSIH.csv", na="", row.names=FALSE)
+  write.csv2(outputSIH_AIH, "outputSIH_AIH.csv", na="", row.names=FALSE)
+  write.csv2(outputSIH_AIH, "outputSIH_SP.csv", na="", row.names=FALSE)
 
-  return(list(outputSIA, outputSIH))
+  return(list(outputSIA, outputSIH_AIH, outputSIH_SP))
 }
 
 

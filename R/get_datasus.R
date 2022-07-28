@@ -347,7 +347,8 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
 
   data_type = switch(information_system,
                      "SIA" = "PA",
-                     "SIH" = c("RD", "RJ"))
+                     "SIH-AIH" = c("RD", "RJ"),
+                     "SIH-SP" = "SP")
 
   files_path <- dbc_dir_path %>%
     str_c("\\", information_system) %>%
@@ -360,7 +361,10 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
     mutate(state = str_sub(file_name, 3, 4),
            publication_date = ym(str_sub(file_name, 5, 8)),
            file_type = str_sub(file_name, 1, 2)) %>%
-    filter(file_type %in% data_type)
+    filter(file_type %in% data_type) %>%
+    mutate(file_id = as.character(row_number()))
+
+  file_type <- select(dir_files, file_type, file_id)
 
   publication_date <- pull(dir_files, publication_date)
   publication_date_start <- min(publication_date)
@@ -388,11 +392,24 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
     )
   }
 
-  if (information_system == "SIH") {
-    raw_SIH <- map_dfr(files_path, read.dbc, as.is=TRUE, .id="TIPO")
+  if (information_system == "SIH-AIH") {
+    raw_SIH <- map_dfr(files_path, read.dbc, as.is=TRUE, .id="file_id")
 
     output <- preprocess_SIH(
       raw_SIH,
+      health_establishment_id,
+      publication_date_start,
+      procedure_details,
+      cbo,
+      file_type
+    )
+  }
+
+  if (information_system == "SIH-SP") {
+    raw_SIH_SP <- map_dfr(files_path, read.dbc, as.is=TRUE)
+
+    output <- preprocess_SIH_SP(
+      raw_SIH_SP,
       health_establishment_id,
       publication_date_start,
       procedure_details,

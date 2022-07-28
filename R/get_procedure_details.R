@@ -103,8 +103,7 @@ get_detail <- function(detail_name) {
     mutate(detail = pmap(list(raw_detail, start, end), ~ str_sub(..1, ..2, ..3))) %>%
     select(column_name, file_version_id, detail) %>%
     pivot_wider(names_from=column_name, values_from=detail) %>%
-    unnest(-file_version_id) %>%
-    mutate(across(everything(), str_trim))
+    unnest(-file_version_id)
 
   return(details)
 }
@@ -146,8 +145,7 @@ get_procedure_details <- function() {
                                     TP_COMPLEXIDADE == 1 ~ "Atenção Básica",
                                     TP_COMPLEXIDADE == 2 ~ "Média Complexidade",
                                     TP_COMPLEXIDADE == 3 ~ "Alta Complexidade"),
-           COMPLEXIDADE = str_c(TP_COMPLEXIDADE, COMPLEXIDADE, sep="-"),
-           across(everything(), str_trim))
+           COMPLEXIDADE = str_c(TP_COMPLEXIDADE, COMPLEXIDADE, sep="-"))
 
   return(procedure_details)
 }

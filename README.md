@@ -26,7 +26,8 @@ create_output(year_start=2021,
                   year_end=2021,
                   month_end=1,
                   state_abbr="CE",
-                  health_establishment_id=c("2561492","2481286")
+                  county_id="230440",
+                  health_establishment_id="all"
                   )
 ```
 

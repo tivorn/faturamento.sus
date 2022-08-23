@@ -9,6 +9,7 @@
 #' @param year_end Ano de término da realização do procedimento
 #' @param month_end Mês de término da realização do procedimento
 #' @param state_abbr Sigla da Unidade Federativa
+#' @param county_id Código(s) do Município de Atendimento
 #' @param health_establishment_id Código(s) do estabelecimento de saúde
 #'
 #' @examples
@@ -17,6 +18,7 @@
 #'                   year_end=2021,
 #'                   month_end=3,
 #'                   state_abbr="CE",
+#'                   county_id="230440"
 #'                   health_establishment_id=c("2561492","2481286")
 #'                   )}
 
@@ -24,6 +26,7 @@
 #' @export
 create_output <- function(year_start, month_start,
                           year_end, month_end, state_abbr,
+                          county_id="all",
                           health_establishment_id="all") {
 
   outputSIA <- get_datasus(
@@ -32,6 +35,7 @@ create_output <- function(year_start, month_start,
     year_end,
     month_end,
     state_abbr,
+    county_id,
     information_system = "SIA",
     health_establishment_id
   )
@@ -42,6 +46,7 @@ create_output <- function(year_start, month_start,
     year_end,
     month_end,
     state_abbr,
+    county_id,
     information_system = "SIH-AIH",
     health_establishment_id
   )
@@ -52,6 +57,7 @@ create_output <- function(year_start, month_start,
     year_end,
     month_end,
     state_abbr,
+    county_id,
     information_system = "SIH-SP",
     health_establishment_id
   )

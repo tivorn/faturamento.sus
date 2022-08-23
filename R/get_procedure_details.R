@@ -81,7 +81,8 @@ get_detail <- function(detail_name) {
                        "Forma de organização" = c("tb_forma_organizacao.txt", "tb_forma_organizacao_layout.txt"),
                        "Financiamento" = c("tb_financiamento.txt", "tb_financiamento_layout.txt"),
                        "Rubrica" = c("tb_rubrica.txt", "tb_rubrica_layout.txt"),
-                       "CBO" = c("tb_ocupacao.txt", "tb_ocupacao_layout.txt"))
+                       "CBO" = c("tb_ocupacao.txt", "tb_ocupacao_layout.txt"),
+                       "CID" = c("tb_cid.txt", "tb_cid_layout.txt"))
 
   raw_detail_file_name <- files_name[1]
   detail_layout_file_name <- files_name[2]

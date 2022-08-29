@@ -1,20 +1,3 @@
-check_health_establishment <- function(df, health_establishment_id) {
-  if (length(health_establishment_id) == 1) {
-    if (health_establishment_id == "all") {
-
-      return(df)
-    } else {
-      filtered_df <- filter(df, CNES == health_establishment_id)
-
-      return(filtered_df)
-    }
-  } else {
-    filtered_df <- filter(df, CNES %in% health_establishment_id)
-
-    return(filtered_df)
-  }
-}
-
 check_filter <- function(df, var_value, var_name) {
 
   if (length(var_value) == 1) {
@@ -433,17 +416,19 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
 
   procedure_details <- get_procedure_details()
   cbo <- get_detail("CBO")
-
+  cid <- get_detail("CID")
 
   if (information_system == "SIA") {
     raw_SIA <- map_dfr(files_path, read.dbc, as.is=TRUE)
 
     output <- preprocess_SIA(
       raw_SIA,
+      county_id,
       health_establishment_id,
       publication_date_start,
       procedure_details,
-      cbo
+      cbo,
+      cid
     )
   }
 
@@ -452,11 +437,13 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
 
     output <- preprocess_SIH(
       raw_SIH,
+      county_id,
       health_establishment_id,
       publication_date_start,
       procedure_details,
       cbo,
-      file_type
+      file_type,
+      cid
     )
   }
 
@@ -465,10 +452,12 @@ get_datasus_from_local <- function(dbc_dir_path, information_system,
 
     output <- preprocess_SIH_SP(
       raw_SIH_SP,
+      county_id,
       health_establishment_id,
       publication_date_start,
       procedure_details,
-      cbo
+      cbo,
+      cid
     )
   }
 

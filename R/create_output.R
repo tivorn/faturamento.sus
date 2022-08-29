@@ -18,7 +18,7 @@
 #'                   year_end=2021,
 #'                   month_end=3,
 #'                   state_abbr="CE",
-#'                   county_id="230440"
+#'                   county_id="230440",
 #'                   health_establishment_id=c("2561492","2481286")
 #'                   )}
 
@@ -81,27 +81,31 @@ create_output <- function(year_start, month_start,
 #'
 #' @examples
 #' \dontrun{create_output(tempdir(),
-#'                        health_establishment_id=c("2561492","2481286")
+#'                        health_establishment_id=c("2561492","2481286"),
+#'                        county_id="230440",
 #'                        )}
 
 
 #' @export
-create_output_from_local <- function(dbc_dir_path, health_establishment_id) {
+create_output_from_local <- function(dbc_dir_path, health_establishment_id, county_id) {
   outputSIA <- get_datasus_from_local(
     dbc_dir_path,
     information_system = "SIA",
+    county_id,
     health_establishment_id
   )
 
   outputSIH_AIH <- get_datasus_from_local(
     dbc_dir_path,
     information_system = "SIH-AIH",
+    county_id,
     health_establishment_id
   )
 
   outputSIH_SP <- get_datasus_from_local(
     dbc_dir_path,
     information_system = "SIH-SP",
+    county_id,
     health_establishment_id
   )
 

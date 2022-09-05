@@ -380,7 +380,7 @@ get_datasus <- function(year_start, month_start,
   return(output)
 }
 
-get_datasus_from_local <- function(dbc_dir_path, information_system,
+get_datasus_from_local <- function(dbc_dir_path, information_system, county_id,
                                    health_establishment_id) {
 
   data_type = switch(information_system,

@@ -87,7 +87,7 @@ create_output <- function(year_start, month_start,
 
 
 #' @export
-create_output_from_local <- function(dbc_dir_path, health_establishment_id, county_id) {
+create_output_from_local <- function(dbc_dir_path, health_establishment_id="all", county_id="all") {
   outputSIA <- get_datasus_from_local(
     dbc_dir_path,
     information_system = "SIA",

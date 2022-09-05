@@ -423,8 +423,8 @@ get_datasus_from_local <- function(dbc_dir_path, information_system, county_id,
 
     output <- preprocess_SIA(
       raw_SIA,
-      county_id,
       health_establishment_id,
+      county_id,
       publication_date_start,
       procedure_details,
       cbo,
@@ -437,8 +437,8 @@ get_datasus_from_local <- function(dbc_dir_path, information_system, county_id,
 
     output <- preprocess_SIH(
       raw_SIH,
-      county_id,
       health_establishment_id,
+      county_id,
       publication_date_start,
       procedure_details,
       cbo,
@@ -452,8 +452,8 @@ get_datasus_from_local <- function(dbc_dir_path, information_system, county_id,
 
     output <- preprocess_SIH_SP(
       raw_SIH_SP,
-      county_id,
       health_establishment_id,
+      county_id,
       publication_date_start,
       procedure_details,
       cbo,

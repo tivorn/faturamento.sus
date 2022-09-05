@@ -409,14 +409,17 @@ get_datasus_from_local <- function(dbc_dir_path, information_system, county_id,
   publication_date_end <- max(publication_date)
 
   download_sigtap_files(year_start = year(publication_date_start),
-                        month_start = month(publication_date_end),
+                        month_start = month(publication_date_start),
                         year_end = year(publication_date_end),
                         month_end = month(publication_date_end),
                         newer=FALSE)
 
   procedure_details <- get_procedure_details()
   cbo <- get_detail("CBO")
-  cid <- get_detail("CID")
+  cid <- get_detail("CID") %>%
+    mutate(#NO_CID = iconv(NO_CID, "latin1", "UTF-8"),
+           across(ends_with("CID"), str_trim),
+           NO_CID = str_c(CO_CID, NO_CID, sep="-"))
 
   if (information_system == "SIA") {
     raw_SIA <- map_dfr(files_path, read.dbc, as.is=TRUE)
